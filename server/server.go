@@ -37,7 +37,7 @@ func Serve(address, protocol string) error {
 		if err != nil {
 			return err
 		}
-		// o delimitador de nova linha e removido para nao atrapalhar na conversao para inteiro novamente
+		// o delimitador de nova linha e removido para nao atrapalhar na conversao para numero
 		data = strings.Split(data, "\n")[0]
 		log.Println("numero recebido: ", data)
 		number, err := strconv.ParseFloat(data, 64)
