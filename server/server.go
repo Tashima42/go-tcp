@@ -1,19 +1,19 @@
 package server
 
 import (
+	"bufio"
 	"log"
 	"net"
-	"os"
-	"os/signal"
-	"syscall"
+	"strconv"
+	"strings"
 )
 
 const (
-	address  = "127.0.0.1:12345"
-	protocol = "tcp"
+	multiply = 100.00 // adryann
+	divide   = 101.00 // eloz
 )
 
-func Serve() error {
+func Serve(address, protocol string) error {
 	log.Println("iniciando servidor...")
 	// net.Listen anuncia na rede e espera por conexoes, nesse caso TCP
 	listen, err := net.Listen(protocol, address)
@@ -21,29 +21,34 @@ func Serve() error {
 		return err
 	}
 	log.Println("aceitando conexoes " + protocol + " no endereco: " + address)
-	// listen.Accept, quando uma conexao e iniciada, aceita e retorna ela
-	conn, err := listen.Accept()
-	if err != nil {
-		return err
+	// em go, a keyword defer e usada pra executar uma acao logo antes de
+	// retornar a funcao, nesse caso logo antes de retornar a funcao, o
+	// servidor sera fechado
+	defer listen.Close()
+	// escutando continuamente por novas conexoes
+	for {
+		// listen.Accept, quando uma conexao e iniciada, aceita e retorna ela
+		conn, err := listen.Accept()
+		if err != nil {
+			return err
+		}
+		// a mensagem do usuario e colocada em um buffer e depois lida ate o delimitador de nova linha
+		data, err := bufio.NewReader(conn).ReadString('\n')
+		if err != nil {
+			return err
+		}
+		// o delimitador de nova linha e removido para nao atrapalhar na conversao para inteiro novamente
+		data = strings.Split(data, "\n")[0]
+		log.Println("numero recebido: ", data)
+		number, err := strconv.ParseFloat(data, 64)
+		if err != nil {
+			return err
+		}
+		finalNumber := (number * multiply) / divide
+		log.Printf("(%.2f * %.2f) / %.2f: %.2f", number, multiply, divide, finalNumber)
+		// assim que a mensagem e lida, a conexao com o cliente e fechada (FIN)
+		if err := conn.Close(); err != nil {
+			return err
+		}
 	}
-	// os dados chegam em bytes e depois podem ser convetidas para strings
-	var data []byte
-	if _, err := conn.Read(data); err != nil {
-		return err
-	}
-	// a mensgem aqui e convertida para uma string e printada no terminal
-	log.Println(string(data))
-	// assim que a mensagem e lida, a conexao com o cliente e fechada (FIN)
-	if err := conn.Close(); err != nil {
-		return err
-	}
-
-	// o programa nao vai avancar, ate que o ususario aperte ctrl + c no terminal
-	done := make(chan os.Signal, 1)
-	signal.Notify(done, syscall.SIGINT, syscall.SIGTERM)
-	log.Println("Pressione ctrl+c para fechar o servidor")
-	<-done
-	log.Println("fechando servidor...")
-	// quando o usuario pressionar ctrl + c, o servidor vai ser encerrado
-	return listen.Close()
 }

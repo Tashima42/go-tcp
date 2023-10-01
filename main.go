@@ -2,10 +2,17 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
+	"strconv"
 
 	"github.com/tashima42/go-tcp/client"
 	"github.com/tashima42/go-tcp/server"
+)
+
+const (
+	address  = "127.0.0.1:12345"
+	protocol = "tcp"
 )
 
 func main() {
@@ -19,7 +26,7 @@ func main() {
 	switch mode {
 	// caso seja server, inicia o servidor
 	case "server":
-		if err := server.Serve(); err != nil {
+		if err := server.Serve(address, protocol); err != nil {
 			panic(err)
 		}
 	// caso seja client, inivia o client e envia a mensagem
@@ -29,8 +36,12 @@ func main() {
 			printUsage()
 			break
 		}
-		message := os.Args[2]
-		if err := client.SendMessage(message); err != nil {
+		numberArg := os.Args[2]
+		number, err := strconv.ParseFloat(numberArg, 64)
+		if err != nil || number <= 0 {
+			log.Fatalf("falha ao converter argumento para numero, use um numero maior do que 0: %s", err.Error())
+		}
+		if err := client.SendMessage(address, protocol, number); err != nil {
 			panic(err)
 		}
 	// caso seja qualquer outra coisa, mostre a mensagem de ajuda de uso
@@ -40,5 +51,5 @@ func main() {
 }
 
 func printUsage() {
-	fmt.Printf("usage: \n  %s server\n  %s client teste\n", os.Args[0], os.Args[0])
+	fmt.Printf("usage: \n  %s server\n  %s client 5\n", os.Args[0], os.Args[0])
 }

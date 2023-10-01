@@ -1,15 +1,11 @@
 package client
 
 import (
+	"fmt"
 	"net"
 )
 
-const (
-	protocol = "tcp"
-	address  = "127.0.0.1:12345"
-)
-
-func SendMessage(message string) error {
+func SendMessage(address, protocol string, number float64) error {
 	// inicia uma conexao TCP
 	conn, err := net.Dial(protocol, address)
 	if err != nil {
@@ -17,7 +13,7 @@ func SendMessage(message string) error {
 	}
 
 	// envia a mensagem pela conexao iniciada
-	if _, err := conn.Write([]byte(message)); err != nil {
+	if _, err := conn.Write([]byte(fmt.Sprintf("%f\n", number))); err != nil {
 		return err
 	}
 
