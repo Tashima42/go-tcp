@@ -2,6 +2,7 @@ package server
 
 import (
 	"bufio"
+	"fmt"
 	"log"
 	"net"
 	"strconv"
@@ -39,14 +40,21 @@ func Serve(address, protocol string) error {
 		}
 		// o delimitador de nova linha e removido para nao atrapalhar na conversao para numero
 		data = strings.Split(data, "\n")[0]
-		log.Println("numero recebido: ", data)
-		number, err := strconv.ParseFloat(data, 64)
+		args := strings.Split(data, "/&/")
+		log.Println("mensagem recebida de: " + args[1])
+		log.Println("numero recebido: ", args[0])
+		number, err := strconv.ParseFloat(args[0], 64)
 		if err != nil {
 			return err
 		}
 		finalNumber := (number * multiply) / divide
-		log.Printf("(%.2f * %.2f) / %.2f: %.2f", number, multiply, divide, finalNumber)
-		// assim que a mensagem e lida, a conexao com o cliente e fechada (FIN)
+		log.Printf("(%.2f * %.2f) / %.2f = %f", number, multiply, divide, finalNumber)
+
+		if _, err := conn.Write([]byte(fmt.Sprint(finalNumber))); err != nil {
+			return err
+		}
+
+		// assim que a mensagem é respondida, a conexao com o cliente e fechada (FIN)
 		if err := conn.Close(); err != nil {
 			return err
 		}

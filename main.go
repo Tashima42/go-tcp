@@ -32,16 +32,17 @@ func main() {
 	// caso seja client, inivia o client e envia a mensagem
 	case "client":
 		// verifica se tem os argumentos necessarios para rodar o client
-		if len(os.Args) < 3 {
+		if len(os.Args) < 4 {
 			printUsage()
 			break
 		}
 		numberArg := os.Args[2]
 		number, err := strconv.ParseFloat(numberArg, 64)
+		name := os.Args[3]
 		if err != nil || number <= 0 {
 			log.Fatalf("falha ao converter argumento para numero, use um numero maior do que 0: %s", err.Error())
 		}
-		if err := client.SendMessage(address, protocol, number); err != nil {
+		if err := client.SendMessage(address, protocol, number, name); err != nil {
 			panic(err)
 		}
 	// caso seja qualquer outra coisa, mostre a mensagem de ajuda de uso
@@ -51,5 +52,5 @@ func main() {
 }
 
 func printUsage() {
-	fmt.Printf("usage: \n  %s server\n  %s client 5\n", os.Args[0], os.Args[0])
+	fmt.Printf("usage: \n  %s server\n  %s client 5 pedro\n", os.Args[0], os.Args[0])
 }
